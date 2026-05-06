@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IoT Dashboard — ESP32 Monitor</title>
+  <title>IoT UKK ESP 32 MONITOR  — By Hafids Damas/19/XII SIJA B</title>
   <meta name="description"
     content="Dashboard monitoring IoT real-time untuk sensor suhu, kelembaban, LDR, I2C, dan kontrol relay berbasis ESP32 via MQTT." />
 
@@ -35,7 +35,7 @@
           </svg>
         </div>
         <div>
-          <h1 class="brand-title">ESP32 IoT Dashboard</h1>
+          <h1 class="brand-title">UKK ESP32 IoT Dashboard - By Hafids Damas/19/XII SIJA B</h1>
           <p class="brand-subtitle">MQTT Real-time Monitor &amp; Control</p>
         </div>
       </div>
@@ -146,7 +146,12 @@
     <!-- SENSOR CARDS ROW -->
     <section class="section">
       <div class="section-header">
-        <h2 class="section-title">📡 Data Sensor Real-time</h2>
+        <h2 class="section-title" style="display: flex; align-items: center; gap: 8px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect>
+          </svg>
+          Data Sensor Real-time
+        </h2>
         <span class="section-badge">LIVE</span>
       </div>
 
@@ -249,7 +254,12 @@
     <!-- CHARTS ROW -->
     <section class="section">
       <div class="section-header">
-        <h2 class="section-title">📈 Grafik Historis</h2>
+        <h2 class="section-title" style="display: flex; align-items: center; gap: 8px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-pink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>
+          </svg>
+          Grafik Historis
+        </h2>
         <div class="chart-controls">
           <button class="btn-chart-ctrl active" onclick="setChartWindow(30, this)">30 data</button>
           <button class="btn-chart-ctrl" onclick="setChartWindow(60, this)">60 data</button>
@@ -331,7 +341,12 @@
     <!-- RELAY CONTROL -->
     <section class="section">
       <div class="section-header">
-        <h2 class="section-title">🔌 Kontrol Relay</h2>
+        <h2 class="section-title" style="display: flex; align-items: center; gap: 8px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line>
+          </svg>
+          Kontrol Relay
+        </h2>
         <!-- MODE SWITCHER -->
         <div class="mode-switcher" id="modeSwitcher">
           <button class="mode-btn mode-btn-manual active" id="btnModeManual" onclick="setRelayMode('manual')">
@@ -363,7 +378,11 @@
           <!-- Manual Relay 1 -->
           <div class="relay-card" id="manualRelayCard1">
             <div class="relay-top">
-              <div class="relay-icon">⚡</div>
+              <div class="relay-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+              </div>
               <div class="relay-info">
                 <p class="relay-name">Relay 1</p>
                 <p class="relay-desc">Output Channel 1</p>
@@ -378,7 +397,11 @@
           <!-- Manual Relay 2 -->
           <div class="relay-card" id="manualRelayCard2">
             <div class="relay-top">
-              <div class="relay-icon">⚡</div>
+              <div class="relay-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+              </div>
               <div class="relay-info">
                 <p class="relay-name">Relay 2</p>
                 <p class="relay-desc">Output Channel 2</p>
@@ -393,7 +416,11 @@
           <!-- Manual Relay 3 -->
           <div class="relay-card" id="manualRelayCard3">
             <div class="relay-top">
-              <div class="relay-icon">⚡</div>
+              <div class="relay-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+              </div>
               <div class="relay-info">
                 <p class="relay-name">Relay 3</p>
                 <p class="relay-desc">Output Channel 3</p>
@@ -408,7 +435,11 @@
           <!-- Manual Relay 4 -->
           <div class="relay-card" id="manualRelayCard4">
             <div class="relay-top">
-              <div class="relay-icon">⚡</div>
+              <div class="relay-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+              </div>
               <div class="relay-info">
                 <p class="relay-name">Relay 4</p>
                 <p class="relay-desc">Output Channel 4</p>
@@ -437,7 +468,11 @@
         <!-- Auto mode indicators -->
         <div class="auto-indicators">
           <div class="auto-indicator-card" id="autoTempIndicator">
-            <div class="auto-ind-icon">🌡️</div>
+            <div class="auto-ind-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2">
+                <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z" />
+              </svg>
+            </div>
             <div class="auto-ind-content">
               <p class="auto-ind-label">Indikator Suhu</p>
               <p class="auto-ind-desc" id="autoTempDesc">RL1: 20-25°C · RL2: 26-30°C · RL3: &gt;30°C</p>
@@ -445,7 +480,19 @@
             <div class="auto-ind-status" id="autoTempStatus">—</div>
           </div>
           <div class="auto-indicator-card" id="autoLdrIndicator">
-            <div class="auto-ind-icon">💡</div>
+            <div class="auto-ind-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-orange)" stroke-width="2">
+                <circle cx="12" cy="12" r="5" />
+                <line x1="12" y1="1" x2="12" y2="3" />
+                <line x1="12" y1="21" x2="12" y2="23" />
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                <line x1="1" y1="12" x2="3" y2="12" />
+                <line x1="21" y1="12" x2="23" y2="12" />
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+              </svg>
+            </div>
             <div class="auto-ind-content">
               <p class="auto-ind-label">Indikator LDR</p>
               <p class="auto-ind-desc">RL4: Gelap=ON · Terang=OFF</p>
@@ -456,10 +503,19 @@
         <div class="relay-grid">
           <div class="relay-card" id="relayCard1">
             <div class="relay-top">
-              <div class="relay-icon">⚡</div>
+              <div class="relay-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+              </div>
               <div class="relay-info">
                 <p class="relay-name">Relay 1</p>
-                <p class="relay-desc">🌡️ Suhu 20-25°C</p>
+                <p class="relay-desc" style="display: flex; align-items: center; gap: 4px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2">
+                    <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z" />
+                  </svg>
+                  Suhu 20-25°C
+                </p>
               </div>
             </div>
             <label class="toggle-switch">
@@ -470,10 +526,19 @@
           </div>
           <div class="relay-card" id="relayCard2">
             <div class="relay-top">
-              <div class="relay-icon">⚡</div>
+              <div class="relay-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+              </div>
               <div class="relay-info">
                 <p class="relay-name">Relay 2</p>
-                <p class="relay-desc">🌡️ Suhu 26-30°C</p>
+                <p class="relay-desc" style="display: flex; align-items: center; gap: 4px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2">
+                    <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z" />
+                  </svg>
+                  Suhu 26-30°C
+                </p>
               </div>
             </div>
             <label class="toggle-switch">
@@ -484,10 +549,22 @@
           </div>
           <div class="relay-card" id="relayCard3">
             <div class="relay-top">
-              <div class="relay-icon">⚡</div>
+              <div class="relay-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+              </div>
               <div class="relay-info">
                 <p class="relay-name">Relay 3</p>
-                <p class="relay-desc">🌡️ Suhu &gt;30°C 🔴</p>
+                <p class="relay-desc" style="display: flex; align-items: center; gap: 4px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2">
+                    <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z" />
+                  </svg>
+                  Suhu &gt;30°C 
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="#ef4444" stroke="#ef4444" stroke-width="2" style="margin-left: 2px;">
+                    <circle cx="12" cy="12" r="10" />
+                  </svg>
+                </p>
               </div>
             </div>
             <label class="toggle-switch">
@@ -498,10 +575,27 @@
           </div>
           <div class="relay-card" id="relayCard4">
             <div class="relay-top">
-              <div class="relay-icon">⚡</div>
+              <div class="relay-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+              </div>
               <div class="relay-info">
                 <p class="relay-name">Relay 4</p>
-                <p class="relay-desc">💡 LDR Indikator</p>
+                <p class="relay-desc" style="display: flex; align-items: center; gap: 4px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-orange)" stroke-width="2">
+                    <circle cx="12" cy="12" r="5" />
+                    <line x1="12" y1="1" x2="12" y2="3" />
+                    <line x1="12" y1="21" x2="12" y2="23" />
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                    <line x1="1" y1="12" x2="3" y2="12" />
+                    <line x1="21" y1="12" x2="23" y2="12" />
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                  </svg>
+                  LDR Indikator
+                </p>
               </div>
             </div>
             <label class="toggle-switch">
@@ -517,7 +611,12 @@
     <!-- LOG PANEL -->
     <section class="section">
       <div class="section-header">
-        <h2 class="section-title">📋 Log MQTT</h2>
+        <h2 class="section-title" style="display: flex; align-items: center; gap: 8px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          Log MQTT
+        </h2>
         <button class="btn-clear-log" onclick="clearLog()">🗑 Clear</button>
       </div>
       <div class="log-panel" id="logPanel">
