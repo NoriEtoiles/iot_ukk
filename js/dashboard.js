@@ -304,13 +304,13 @@ function connectMQTT() {
     const allTopics = Object.values(cfg.topics).filter(t => t);
     allTopics.forEach(t => {
       mqttClient.subscribe(t, err => {
-        addLog(err ? `Gagal subscribe: ${t}` : `Berhasil subscribe: ${t}`, err ? 'error' : 'success');
+        if (err) addLog(`Gagal mendaftar penerimaan data: ${t.split('/').pop()}`, 'error');
       });
     });
 
     // Subscribe wildcard untuk menangkap semua sub-topik (sensor + relay)
     mqttClient.subscribe('smk/iot/#', err => {
-      if (!err) addLog('Berhasil subscribe: smk/iot/#', 'success');
+      if (!err) addLog('✓ Sistem siap menerima pembaruan data real-time', 'success');
     });
   });
 
@@ -334,13 +334,44 @@ function disconnectMQTT() {
 // ── [5] MESSAGE HANDLER ───────────────────────
 // Memproses pesan masuk dari broker MQTT sesuai topiknya
 function handleMessage(topic, payload, topics) {
-  addLog(`↓ ${topic}: ${payload}`, 'data');
-  updateLastUpdate();
-
   let data;
   try { data = JSON.parse(payload); } catch { data = payload; }
 
   const includes = kw => topic.includes(kw);
+
+  let friendlyMsg = `Pesan baru (${topic.split('/').pop()})`;
+  if (topic === topics.i2c || (topic.endsWith('/sensor') && !includes('temperature') && !includes('humidity') && !includes('ldr'))) {
+    if (typeof data === 'object') {
+      let f = `Update Data Sensor: Suhu ruangan ${data.temperature ?? '--'}°C, Kelembaban ${data.humidity ?? '--'}%, Kondisi cahaya ${data.ldr ?? '--'}.`;
+      if (data.mode) f += ` Mode alat: ${data.mode.toUpperCase()}.`;
+      if (data.uptime) f += ` Sistem menyala: ${data.uptime} detik.`;
+      friendlyMsg = f;
+    } else {
+      friendlyMsg = `Menerima pembaruan data sensor (Format tidak dikenali)`;
+    }
+  } else if (topic === topics.temperature || includes('temperature')) {
+    const val = typeof data === 'object' ? (data.value ?? data.temp ?? data.temperature) : data;
+    friendlyMsg = `Update Suhu: ${val}°C`;
+  } else if (topic === topics.humidity || includes('humidity')) {
+    const val = typeof data === 'object' ? (data.value ?? data.humidity) : data;
+    friendlyMsg = `Update Kelembaban: ${val}%`;
+  } else if (topic === topics.ldr || includes('ldr')) {
+    const val = typeof data === 'object' ? (data.value ?? data.ldr ?? data.raw) : data;
+    friendlyMsg = `Update Sensor Cahaya: ${val}`;
+  } else if (topic === topics.relayStatus || includes('relay/status')) {
+    friendlyMsg = `Menerima status sinkronisasi semua relay`;
+  } else if (topic.match(/relay\/(?:control\/)?(\d)/)) {
+    const match = topic.match(/relay\/(?:control\/)?(\d)/);
+    friendlyMsg = `Status Relay ${match[1]} diubah menjadi ${payload}`;
+  } else if (topic === 'smk/iot/relay/mode/status' || includes('relay/mode')) {
+    friendlyMsg = `Mode sistem disinkronkan ke: ${payload.toUpperCase()}`;
+  } else {
+    const shortPayload = payload.length > 25 ? payload.substring(0, 25) + '...' : payload;
+    friendlyMsg = `Menerima pesan: ${shortPayload}`;
+  }
+
+  addLog(`📥 ${friendlyMsg}`, 'data');
+  updateLastUpdate();
   const numVal = (obj, ...keys) => typeof obj === 'object'
     ? parseFloat(obj[keys.find(k => obj[k] !== undefined)])
     : parseFloat(obj);
@@ -644,8 +675,8 @@ function toggleRelay(num, checkbox) {
 
   if (isConnected && mqttClient) {
     mqttClient.publish(topic, payload, { qos: 1 }, err => {
-      if (err) addLog(`Publish error relay ${num}: ${err.message}`, 'error');
-      else { addLog(`↑ ${topic}: ${payload}`, 'publish'); setRelayUI(num, isOn); }
+      if (err) addLog(`Gagal mengirim perintah ke Relay ${num}: ${err.message}`, 'error');
+      else { addLog(`📤 Mengirim perintah untuk mengubah Relay ${num} menjadi ${payload}`, 'publish'); setRelayUI(num, isOn); }
     });
   } else {
     addLog('Belum terhubung — perintah relay tidak dikirim', 'error');
@@ -722,8 +753,8 @@ function addLog(msg, type = 'data') {
   entry.innerHTML = `<span class="log-time">${new Date().toLocaleTimeString('id-ID')}</span><span class="log-msg">${msg}</span>`;
   panel.appendChild(entry);
   panel.scrollTop = panel.scrollHeight;
-  // Batasi maksimal 200 entri agar tidak memenuhi memori
-  while (panel.children.length > 200) panel.removeChild(panel.firstChild);
+  // Batasi maksimal 20 entri agar log mudah dibaca dan tidak memenuhi memori
+  while (panel.children.length > 20) panel.removeChild(panel.firstChild);
 }
 
 // Menghapus semua entri log
@@ -789,7 +820,7 @@ function setRelayMode(mode) {
   // Kirim perintah mode ke Arduino via MQTT
   if (isConnected && mqttClient) {
     mqttClient.publish('smk/iot/relay/mode', mode, { qos: 1, retain: true });
-    addLog(`↑ smk/iot/relay/mode: ${mode}`, 'publish');
+    addLog(`📤 Meminta perangkat beralih ke mode ${mode.toUpperCase()}`, 'publish');
   }
 }
 
