@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IoT Dashboard — ESP32 Monitor</title>
+  <meta name="description"
+    content="Dashboard monitoring IoT real-time untuk sensor suhu, kelembaban, LDR, I2C, dan kontrol relay berbasis ESP32 via MQTT." />
+
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/mqtt@5.3.4/dist/mqtt.min.js"></script>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+
+  <!-- Background particles -->
+  <div class="bg-particles" id="bgParticles"></div>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="header-brand">
+        <div class="brand-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-title">ESP32 IoT Dashboard</h1>
+          <p class="brand-subtitle">MQTT Real-time Monitor &amp; Control</p>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <div class="connection-badge" id="connectionBadge">
+          <span class="conn-dot" id="connDot"></span>
+          <span class="conn-text" id="connText">Disconnected</span>
+        </div>
+        <button class="btn-config" id="btnConfig" onclick="toggleConfig()" style="display: none !important;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14" />
+          </svg>
+          Konfigurasi MQTT
+        </button>
+        <div class="last-update" id="lastUpdate">—</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- HIGH TEMPERATURE WARNING BANNER -->
+  <div class="temp-warning-banner" id="tempWarningBanner">
+    <div class="temp-warning-inner">
+      <div class="temp-warning-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+      </div>
+      <div class="temp-warning-content">
+        <span class="temp-warning-title">⚠️ PERINGATAN SUHU TINGGI!</span>
+        <span class="temp-warning-detail" id="tempWarningDetail">Suhu saat ini melebihi 30°C - LED indikator menyala
+          terus pada PIN D2</span>
+      </div>
+      <button class="temp-warning-dismiss" id="tempWarningDismiss" onclick="dismissTempWarning()">×</button>
+    </div>
+  </div>
+
+  <!-- CONFIG PANEL (Hidden tapi tetap berjalan untuk supply value ke dashboard.js) -->
+  <div class="config-overlay" id="configOverlay" onclick="toggleConfig()" style="display: none !important;"></div>
+  <aside class="config-panel" id="configPanel" style="display: none !important;">
+    <div class="config-header">
+      <h2>⚙️ Konfigurasi MQTT</h2>
+      <button class="btn-close" onclick="toggleConfig()">✕</button>
+    </div>
+    <div class="config-body">
+      <div class="form-group">
+        <label>Host / Broker</label>
+        <input type="text" id="cfgHost" placeholder="broker.hivemq.com"
+          value="2ec91ffca59140acb12bec2a0ee8a71b.s1.eu.hivemq.cloud" />
+      </div>
+      <div class="form-group">
+        <label>Port (WSS)</label>
+        <input type="number" id="cfgPort" placeholder="8884" value="8884" />
+      </div>
+      <div class="form-group">
+        <label>Client ID</label>
+        <input type="text" id="cfgClientId" placeholder="Otomatis jika kosong" />
+      </div>
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="cfgUsername" placeholder="kosongkan jika tidak ada" value="Damass19" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="cfgPassword" placeholder="password" value="Damass19" />
+      </div>
+      <div class="form-divider"></div>
+      <h3 style="color:var(--accent);margin-bottom:12px;font-size:0.85rem;text-transform:uppercase;letter-spacing:1px;">
+        MQTT Topics</h3>
+      <div class="form-group">
+        <label>Topic Sensor (gabungan JSON)</label>
+        <input type="text" id="topicSensorAll" value="smk/iot/sensor" />
+      </div>
+      <div class="form-group">
+        <label>Topic Suhu</label>
+        <input type="text" id="topicTemp" value="smk/iot/sensor/temperature" />
+      </div>
+      <div class="form-group">
+        <label>Topic Kelembaban</label>
+        <input type="text" id="topicHumid" value="smk/iot/sensor/humidity" />
+      </div>
+      <div class="form-group">
+        <label>Topic LDR</label>
+        <input type="text" id="topicLdr" value="smk/iot/sensor/ldr" />
+      </div>
+
+      <div class="form-group">
+        <label>Topic Status Relay</label>
+        <input type="text" id="topicRelayStatus" value="smk/iot/relay/status" />
+      </div>
+      <div class="form-group">
+        <label>Topic Kontrol Relay</label>
+        <input type="text" id="topicRelayCtrl" value="smk/iot/relay/control" />
+      </div>
+      <div class="config-actions">
+        <button class="btn-connect" id="btnConnect" onclick="connectMQTT()">🔌 Connect</button>
+        <button class="btn-disconnect" id="btnDisconnect" onclick="disconnectMQTT()" disabled>⛔ Disconnect</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- SENSOR CARDS ROW -->
+    <section class="section">
+      <div class="section-header">
+        <h2 class="section-title">📡 Data Sensor Real-time</h2>
+        <span class="section-badge">LIVE</span>
+      </div>
+
+      <div class="cards-grid">
+
+        <!-- SUHU -->
+        <div class="card card-glow card-temp" id="cardTemp">
+          <div class="card-header-row">
+            <div class="card-icon-wrap icon-temp">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z" />
+              </svg>
+            </div>
+            <div>
+              <p class="card-label">Suhu</p>
+              <p class="card-sublabel">DHT Sensor</p>
+            </div>
+            <div class="card-status-dot" id="tempDot"></div>
+          </div>
+          <div class="gauge-wrap" style="height: 110px; display: flex; align-items: center; justify-content: center;">
+            <div style="text-align: center; width: 100%;">
+              <span class="gauge-value" id="tempValue" style="font-size: 3.5rem; color: var(--accent-orange);">--</span>
+              <span class="gauge-unit" style="font-size: 1.2rem; margin-left: 4px;">°C</span>
+            </div>
+          </div>
+          <div class="card-footer-row">
+            <span class="card-meta">Min: <strong id="tempMin">--</strong></span>
+            <span class="card-meta">Max: <strong id="tempMax">--</strong></span>
+          </div>
+        </div>
+
+        <!-- KELEMBABAN -->
+        <div class="card card-glow card-humid" id="cardHumid">
+          <div class="card-header-row">
+            <div class="card-icon-wrap icon-humid">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+              </svg>
+            </div>
+            <div>
+              <p class="card-label">Kelembaban</p>
+              <p class="card-sublabel">DHT Sensor</p>
+            </div>
+            <div class="card-status-dot" id="humidDot"></div>
+          </div>
+          <div class="gauge-wrap" style="height: 110px; display: flex; align-items: center; justify-content: center;">
+            <div style="text-align: center; width: 100%;">
+              <span class="gauge-value" id="humidValue" style="font-size: 3.5rem; color: var(--accent);">--</span>
+              <span class="gauge-unit" style="font-size: 1.2rem; margin-left: 4px;">%</span>
+            </div>
+          </div>
+          <div class="card-footer-row">
+            <span class="card-meta">Min: <strong id="humidMin">--</strong></span>
+            <span class="card-meta">Max: <strong id="humidMax">--</strong></span>
+          </div>
+        </div>
+
+        <!-- LDR -->
+        <div class="card card-glow card-ldr" id="cardLdr">
+          <div class="card-header-row">
+            <div class="card-icon-wrap icon-ldr">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="5" />
+                <line x1="12" y1="1" x2="12" y2="3" />
+                <line x1="12" y1="21" x2="12" y2="23" />
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                <line x1="1" y1="12" x2="3" y2="12" />
+                <line x1="21" y1="12" x2="23" y2="12" />
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+              </svg>
+            </div>
+            <div>
+              <p class="card-label">Intensitas Cahaya</p>
+              <p class="card-sublabel">LDR Sensor</p>
+            </div>
+            <div class="card-status-dot" id="ldrDot"></div>
+          </div>
+          <div class="ldr-display">
+            <div class="ldr-value-big" id="ldrValue">--</div>
+            <div class="ldr-unit">ADC raw</div>
+            <div class="ldr-bar-wrap">
+              <div class="ldr-bar-bg">
+                <div class="ldr-bar-fill" id="ldrBarFill" style="width:0%"></div>
+              </div>
+              <div class="ldr-bar-labels">
+                <span>Gelap</span><span>Terang</span>
+              </div>
+            </div>
+            <div class="ldr-condition" id="ldrCondition">—</div>
+          </div>
+        </div>
+
+
+
+      </div>
+    </section>
+
+    <!-- CHARTS ROW -->
+    <section class="section">
+      <div class="section-header">
+        <h2 class="section-title">📈 Grafik Historis</h2>
+        <div class="chart-controls">
+          <button class="btn-chart-ctrl active" onclick="setChartWindow(30, this)">30 data</button>
+          <button class="btn-chart-ctrl" onclick="setChartWindow(60, this)">60 data</button>
+          <button class="btn-chart-ctrl" onclick="setChartWindow(100, this)">100 data</button>
+          <button class="btn-chart-ctrl" onclick="clearChartData()">🗑 Reset</button>
+        </div>
+      </div>
+      <div class="chart-grid">
+
+        <!-- Chart Suhu -->
+        <div class="chart-card chart-temp-card">
+          <div class="chart-card-header">
+            <span class="chart-dot dot-temp"></span>
+            <div class="chart-card-title">
+              <span class="chart-card-label">Suhu</span>
+              <span class="chart-card-sublabel">DHT Sensor · °C</span>
+            </div>
+            <span class="chart-live-badge">● LIVE</span>
+          </div>
+          <div class="chart-stats">
+            <div class="chart-stat">
+              <div class="chart-stat-label">Sekarang</div>
+              <div class="chart-stat-value stat-current temp-color" id="chartTempCurrent">--</div>
+            </div>
+            <div class="chart-stat">
+              <div class="chart-stat-label">Min</div>
+              <div class="chart-stat-value" id="chartTempMin">--</div>
+            </div>
+            <div class="chart-stat">
+              <div class="chart-stat-label">Max</div>
+              <div class="chart-stat-value" id="chartTempMax">--</div>
+            </div>
+            <div class="chart-stat">
+              <div class="chart-stat-label">Data</div>
+              <div class="chart-stat-value" id="chartTempCount">0</div>
+            </div>
+          </div>
+          <div class="chart-canvas-wrap">
+            <canvas id="chartTemp"></canvas>
+          </div>
+        </div>
+
+        <!-- Chart Kelembaban -->
+        <div class="chart-card chart-humid-card">
+          <div class="chart-card-header">
+            <span class="chart-dot dot-humid"></span>
+            <div class="chart-card-title">
+              <span class="chart-card-label">Kelembaban</span>
+              <span class="chart-card-sublabel">DHT Sensor · %RH</span>
+            </div>
+            <span class="chart-live-badge">● LIVE</span>
+          </div>
+          <div class="chart-stats">
+            <div class="chart-stat">
+              <div class="chart-stat-label">Sekarang</div>
+              <div class="chart-stat-value stat-current humid-color" id="chartHumidCurrent">--</div>
+            </div>
+            <div class="chart-stat">
+              <div class="chart-stat-label">Min</div>
+              <div class="chart-stat-value" id="chartHumidMin">--</div>
+            </div>
+            <div class="chart-stat">
+              <div class="chart-stat-label">Max</div>
+              <div class="chart-stat-value" id="chartHumidMax">--</div>
+            </div>
+            <div class="chart-stat">
+              <div class="chart-stat-label">Data</div>
+              <div class="chart-stat-value" id="chartHumidCount">0</div>
+            </div>
+          </div>
+          <div class="chart-canvas-wrap">
+            <canvas id="chartHumid"></canvas>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- RELAY CONTROL -->
+    <section class="section">
+      <div class="section-header">
+        <h2 class="section-title">🔌 Kontrol Relay</h2>
+        <!-- MODE SWITCHER -->
+        <div class="mode-switcher" id="modeSwitcher">
+          <button class="mode-btn mode-btn-manual active" id="btnModeManual" onclick="setRelayMode('manual')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path
+                d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18" />
+            </svg>
+            Manual
+          </button>
+          <button class="mode-btn mode-btn-auto" id="btnModeAuto" onclick="setRelayMode('auto')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path
+                d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+            </svg>
+            Automatisasi
+          </button>
+        </div>
+      </div>
+
+      <!-- MODE INDICATOR -->
+      <div class="mode-indicator" id="modeIndicator">
+        <div class="mode-indicator-dot manual-dot"></div>
+        <span class="mode-indicator-text" id="modeIndicatorText">Mode Manual — Kontrol relay secara manual</span>
+      </div>
+
+      <!-- MANUAL MODE PANEL -->
+      <div class="manual-panel" id="manualPanel">
+        <div class="relay-grid">
+          <!-- Manual Relay 1 -->
+          <div class="relay-card" id="manualRelayCard1">
+            <div class="relay-top">
+              <div class="relay-icon">⚡</div>
+              <div class="relay-info">
+                <p class="relay-name">Relay 1</p>
+                <p class="relay-desc">Output Channel 1</p>
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="manualBtn1" onchange="manualToggleRelay(1)" />
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="relay-status" id="manualBtnLabel1">OFF</div>
+          </div>
+          <!-- Manual Relay 2 -->
+          <div class="relay-card" id="manualRelayCard2">
+            <div class="relay-top">
+              <div class="relay-icon">⚡</div>
+              <div class="relay-info">
+                <p class="relay-name">Relay 2</p>
+                <p class="relay-desc">Output Channel 2</p>
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="manualBtn2" onchange="manualToggleRelay(2)" />
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="relay-status" id="manualBtnLabel2">OFF</div>
+          </div>
+          <!-- Manual Relay 3 -->
+          <div class="relay-card" id="manualRelayCard3">
+            <div class="relay-top">
+              <div class="relay-icon">⚡</div>
+              <div class="relay-info">
+                <p class="relay-name">Relay 3</p>
+                <p class="relay-desc">Output Channel 3</p>
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="manualBtn3" onchange="manualToggleRelay(3)" />
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="relay-status" id="manualBtnLabel3">OFF</div>
+          </div>
+          <!-- Manual Relay 4 -->
+          <div class="relay-card" id="manualRelayCard4">
+            <div class="relay-top">
+              <div class="relay-icon">⚡</div>
+              <div class="relay-info">
+                <p class="relay-name">Relay 4</p>
+                <p class="relay-desc">Output Channel 4</p>
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="manualBtn4" onchange="manualToggleRelay(4)" />
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="relay-status" id="manualBtnLabel4">OFF</div>
+          </div>
+        </div>
+        <!-- RESET ALL BUTTON -->
+        <div class="manual-reset-wrap" style="margin-top: 16px; text-align: right;">
+          <button class="manual-reset-btn" id="manualResetAllBtn" onclick="manualResetAllRelays()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+              <line x1="12" y1="2" x2="12" y2="12"></line>
+            </svg> Semua Relay (ON)
+          </button>
+        </div>
+      </div>
+
+      <!-- AUTOMATISASI MODE PANEL -->
+      <div class="auto-panel" id="autoPanel" style="display:none;">
+        <!-- Auto mode indicators -->
+        <div class="auto-indicators">
+          <div class="auto-indicator-card" id="autoTempIndicator">
+            <div class="auto-ind-icon">🌡️</div>
+            <div class="auto-ind-content">
+              <p class="auto-ind-label">Indikator Suhu</p>
+              <p class="auto-ind-desc" id="autoTempDesc">RL1: 20-25°C · RL2: 26-30°C · RL3: &gt;30°C</p>
+            </div>
+            <div class="auto-ind-status" id="autoTempStatus">—</div>
+          </div>
+          <div class="auto-indicator-card" id="autoLdrIndicator">
+            <div class="auto-ind-icon">💡</div>
+            <div class="auto-ind-content">
+              <p class="auto-ind-label">Indikator LDR</p>
+              <p class="auto-ind-desc">RL4: Gelap=ON · Terang=OFF</p>
+            </div>
+            <div class="auto-ind-status" id="autoLdrStatus">—</div>
+          </div>
+        </div>
+        <div class="relay-grid">
+          <div class="relay-card" id="relayCard1">
+            <div class="relay-top">
+              <div class="relay-icon">⚡</div>
+              <div class="relay-info">
+                <p class="relay-name">Relay 1</p>
+                <p class="relay-desc">🌡️ Suhu 20-25°C</p>
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="relay1Toggle" onchange="toggleRelay(1, this)" />
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="relay-status" id="relay1Status">OFF</div>
+          </div>
+          <div class="relay-card" id="relayCard2">
+            <div class="relay-top">
+              <div class="relay-icon">⚡</div>
+              <div class="relay-info">
+                <p class="relay-name">Relay 2</p>
+                <p class="relay-desc">🌡️ Suhu 26-30°C</p>
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="relay2Toggle" onchange="toggleRelay(2, this)" />
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="relay-status" id="relay2Status">OFF</div>
+          </div>
+          <div class="relay-card" id="relayCard3">
+            <div class="relay-top">
+              <div class="relay-icon">⚡</div>
+              <div class="relay-info">
+                <p class="relay-name">Relay 3</p>
+                <p class="relay-desc">🌡️ Suhu &gt;30°C 🔴</p>
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="relay3Toggle" onchange="toggleRelay(3, this)" />
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="relay-status" id="relay3Status">OFF</div>
+          </div>
+          <div class="relay-card" id="relayCard4">
+            <div class="relay-top">
+              <div class="relay-icon">⚡</div>
+              <div class="relay-info">
+                <p class="relay-name">Relay 4</p>
+                <p class="relay-desc">💡 LDR Indikator</p>
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="relay4Toggle" onchange="toggleRelay(4, this)" />
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="relay-status" id="relay4Status">OFF</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LOG PANEL -->
+    <section class="section">
+      <div class="section-header">
+        <h2 class="section-title">📋 Log MQTT</h2>
+        <button class="btn-clear-log" onclick="clearLog()">🗑 Clear</button>
+      </div>
+      <div class="log-panel" id="logPanel">
+        <div class="log-entry log-info">
+          <span class="log-time">—</span>
+          <span class="log-msg">Dashboard siap. Silakan hubungkan ke broker MQTT.</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <span>ESP32 IoT Dashboard © 2024</span>
+    <span>|</span>
+    <span>MQTT over WebSocket</span>
+    <span>|</span>
+    <span id="footerBroker">broker.hivemq.com:8000</span>
+  </footer>
+
+  <script src="js/dashboard.js"></script>
+</body>
+
+</html>
