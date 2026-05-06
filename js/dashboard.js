@@ -645,11 +645,11 @@ function toggleRelay(num, checkbox) {
   if (isConnected && mqttClient) {
     mqttClient.publish(topic, payload, { qos: 1 }, err => {
       if (err) addLog(`Publish error relay ${num}: ${err.message}`, 'error');
-      else { addLog(`↑ ${topic}: ${payload}`, 'publish'); setRelayUI(num, state); }
+      else { addLog(`↑ ${topic}: ${payload}`, 'publish'); setRelayUI(num, isOn); }
     });
   } else {
     addLog('Belum terhubung — perintah relay tidak dikirim', 'error');
-    checkbox.checked = !state; // kembalikan posisi toggle jika gagal
+    checkbox.checked = !isOn; // kembalikan posisi toggle jika gagal
   }
 }
 
@@ -658,13 +658,20 @@ function setRelayUI(num, isOn) {
   const card = document.getElementById(`relayCard${num}`);
   const toggle = document.getElementById(`relay${num}Toggle`);
   const status = document.getElementById(`relay${num}Status`);
-  if (!card) return;
+  
+  if (card && toggle && status) {
+    toggle.checked = isOn;
+    sensorState.relays[num] = isOn;
+    card.classList.toggle('active', isOn);
+    status.textContent = isOn ? 'ON' : 'OFF';
+    status.classList.toggle('on', isOn);
+  }
 
-  toggle.checked = isOn;
-  sensorState.relays[num] = isOn;
-  card.classList.toggle('active', isOn);
-  status.textContent = isOn ? 'ON' : 'OFF';
-  status.classList.toggle('on', isOn);
+  // Sinkronisasi juga ke manual UI agar saat dikontrol dari device lain (via MQTT), status di layar manual ikut berubah
+  manualRelayState[num] = isOn;
+  if (typeof updateManualRelayUI === 'function') {
+    updateManualRelayUI(num, isOn);
+  }
 }
 
 
