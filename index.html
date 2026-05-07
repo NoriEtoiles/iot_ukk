@@ -21,6 +21,16 @@
 
 <body>
 
+  <!-- LOADING SCREEN -->
+  <div class="loading-screen" id="loadingScreen">
+    <div class="loader">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+      </svg>
+      <div class="loader-text">Memuat Dashboard...</div>
+    </div>
+  </div>
+
   <!-- Background particles -->
   <div class="bg-particles" id="bgParticles"></div>
 
@@ -631,11 +641,11 @@
 
   <!-- FOOTER -->
   <footer class="footer">
-    <span>ESP32 IoT Dashboard © 2026</span>
+    <span>ESP32 IoT Dashboard © 2024</span>
     <span>|</span>
     <span>MQTT over WebSocket</span>
     <span>|</span>
-    <span id="footerBroker">broker.hivemq.com</span>
+    <span id="footerBroker">broker.hivemq.com:8000</span>
   </footer>
 
   <script src="js/dashboard.js"></script>
