@@ -1,5 +1,16 @@
 'use strict';
 
+// ── [0] LOADING SCREEN ────────────────────────
+window.addEventListener('load', () => {
+  const loader = document.getElementById('loadingScreen');
+  if (loader) {
+    // Memberikan sedikit delay agar animasi dan aset terlihat selesai dimuat
+    setTimeout(() => {
+      loader.classList.add('hidden');
+    }, 800);
+  }
+});
+
 /* =============================================
    dashboard.js — Logika Dashboard IoT MQTT
    ============================================= */
