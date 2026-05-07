@@ -48,6 +48,56 @@ body {
   overflow-x: hidden;
 }
 
+/* ── LOADING SCREEN ── */
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--bg-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.6s cubic-bezier(.4, 0, .2, 1), visibility 0.6s cubic-bezier(.4, 0, .2, 1);
+}
+
+.loading-screen.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.loader svg {
+  animation: pulse-loader 1.5s infinite ease-in-out;
+  filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.4));
+}
+
+.loader-text {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.05em;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: fade-text 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse-loader {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 1; }
+  50% { transform: translateY(-10px) scale(1.05); opacity: 0.8; }
+}
+
+@keyframes fade-text {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
 /* ── Background particles ── */
 .bg-particles {
   position: fixed;
@@ -1865,5 +1915,3 @@ body {
     border-radius: 5px;
   }
 }
-
-/* === PWA ADDITIONS === */
